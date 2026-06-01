@@ -65,15 +65,13 @@ input{width:100%;box-sizing:border-box;padding:16px;border:2px solid #d1d5db;bor
 
 <div class="grid">
 <div class="card blue">
-<div class="kicker">รัฐช่วย</div>
-<div class="title">60%</div>
+<div class="title">รัฐช่วย</div>
 <div id="gov" class="value">0.00</div>
 <div id="govwarn" class="note"></div>
 </div>
 
 <div class="card green">
-<div class="kicker">ประชาชนจ่าย</div>
-<div class="title">40%</div>
+<div class="title">ประชาชนจ่าย</div>
 <div id="user" class="value">0.00</div>
 <div id="userwarn" class="note"></div>
 </div>
@@ -87,7 +85,7 @@ input{width:100%;box-sizing:border-box;padding:16px;border:2px solid #d1d5db;bor
 </div>
 
 <div class="card">
-<div class="title">สิทธิ์รัฐเดือนนี้</div>
+<div class="title">สิทธิ์คงเหลือเดือนนี้</div>
 <div id="monthremain" class="value">1000.00</div>
 <div id="monthnote" class="note"></div>
 </div>
@@ -119,62 +117,81 @@ function nowThai(){return new Date().toLocaleString('th-TH',{timeZone:'Asia/Bang
 function todayUsed(){return getItems().filter(x=>x.day===todayKey()).reduce((a,b)=>a+b.gov,0)}
 function monthUsed(){return getItems().reduce((a,b)=>a+b.gov,0)}
 
+
 function calc(){
 let total=parseFloat(amount.value)||0;
 inputwarn.innerHTML=''; govwarn.innerHTML=''; userwarn.innerHTML='';
-if(total<=0){gov.innerText='0.00';user.innerText='0.00'; renderRemain(); return;}
-let tr=Math.max(0,DAILY_CAP-todayUsed());
-let mr=Math.max(0,MONTH_CAP-monthUsed());
+let todayTotal=getItems().filter(x=>x.day===todayKey()).reduce((a,b)=>a+b.total,0);
+let todayGov=todayUsed();
+let monthGov=monthUsed();
+
+if(total<=0){
+gov.innerText='0.00 บาท';
+user.innerText='0.00 บาท';
+renderRemain();
+return;
+}
+
+let previewTotal=todayTotal+total;
+let govRemainDay=Math.max(0,DAILY_CAP-todayGov);
+let govRemainMonth=Math.max(0,MONTH_CAP-monthGov);
+
 let gov60=total*0.6;
-let govReal=Math.min(gov60,tr,mr);
+let govReal=Math.min(gov60,govRemainDay,govRemainMonth);
 let userReal=total-govReal;
 
 gov.innerText=fmt(govReal)+' บาท';
 user.innerText=fmt(userReal)+' บาท';
 
-let dayTotal = getItems().filter(x=>x.day===todayKey()).reduce((a,b)=>a+b.total,0)+total;
-if(dayTotal>333.33){
-inputwarn.innerHTML='<div class="warn red">❗ ยอดรวมวันนี้เกิน 333.33 บาท<br>รัฐช่วยได้สูงสุด 200 บาท / วัน</div>';
+if(previewTotal>333.33){
+inputwarn.innerHTML='<div class="warn red">❗ ยอดรวมวันนี้เกิน 333.33 บาท<br>รัฐช่วยได้ 200 บาท / วัน</div>';
 }
+
 if(gov60>govReal){
-if(gov60>govReal){
-govwarn.innerHTML='<span class="alerttext">รัฐช่วยได้สูงสุด '+fmt(govReal)+' บาท </span>';
-}else{
-govwarn.innerHTML='รัฐช่วย '+fmt(govReal)+' บาท';
+govwarn.innerHTML='<span class="alerttext">รัฐช่วยได้ '+fmt(govReal)+' บาท</span>';
 }
-}
+
 let citizenBase=133.33;
-let todayCitizen=getItems().filter(x=>x.day===todayKey()).reduce((a,b)=>a+b.user,0);
-let citizenPreview=todayCitizen+userReal;
-let extraSelf=Math.max(0,citizenPreview-citizenBase);
-if(extraSelf>0){
-userwarn.innerHTML='<span class="alerttext">จ่ายเพิ่มเติม '+fmt(extraSelf)+' บาท</span>';
+let citizenUsed=getItems().filter(x=>x.day===todayKey()).reduce((a,b)=>a+b.user,0);
+let citizenPreview=citizenUsed+userReal;
+let extra=Math.max(0,citizenPreview-citizenBase);
+
+if(extra>0){
+userwarn.innerHTML='<span class="alerttext">จ่ายเพิ่มเติม '+fmt(extra)+' บาท</span>';
 }else{
-userwarn.innerHTML='จ่ายเพิ่มเติม 0.00 บาท';
+userwarn.innerHTML='';
 }
 renderRemain();
 }
 
 function renderRemain(){
-let tr=Math.max(0,DAILY_CAP-todayUsed());
-let mr=Math.max(0,MONTH_CAP-monthUsed());
-let preview=parseFloat(amount.value)||0;
-let govPreview=Math.min(preview*0.6,tr,mr);
-let previewGovRemain=Math.max(0,tr-govPreview);
-let previewMonthRemain=Math.max(0,mr-govPreview);
-let buyRemain=Math.min(previewGovRemain/0.6, previewMonthRemain/0.6);
-dailyremain.innerText=fmt(Math.max(0,buyRemain))+' บาท';
-if(buyRemain<=0){
-dailynote.innerHTML='<span class="alerttext">เกินสิทธิ์วันนี้ '+fmt((preview-(Math.min(preview, buyRemain))))+' บาท</span>';
+let input=parseFloat(amount.value)||0;
+let todayTotal=getItems().filter(x=>x.day===todayKey()).reduce((a,b)=>a+b.total,0);
+let todayGov=todayUsed();
+let monthGov=monthUsed();
+
+let previewGov=Math.min(input*0.6, Math.max(0,DAILY_CAP-todayGov), Math.max(0,MONTH_CAP-monthGov));
+
+let govRemainDay=Math.max(0,DAILY_CAP-(todayGov+previewGov));
+let govRemainMonth=Math.max(0,MONTH_CAP-(monthGov+previewGov));
+
+let buyRemainDay=govRemainDay/0.6;
+let buyRemainMonth=govRemainMonth/0.6;
+let dailyPurchaseRemain=Math.max(0,333.33-(todayTotal+input));
+let finalRemain=Math.min(dailyPurchaseRemain,buyRemainMonth);
+
+dailyremain.innerText=fmt(Math.max(0,finalRemain))+' บาท';
+
+if(finalRemain<=0){
+let over=Math.max(0,(todayTotal+input)-333.33);
+dailynote.innerHTML='<span class="alerttext">เกินสิทธิ์วันนี้ '+fmt(over)+' บาท</span>';
 }else{
-dailynote.innerHTML='เหลือสิทธิ์รัฐ '+fmt(Math.max(0,previewGovRemain))+' บาท';
-}
-monthremain.innerText=fmt(mr)+' บาท';
-monthnote.innerHTML='มูลค่ารวม '+fmt(mr/0.6)+' บาท';
-if(mr<=200 && mr>0) monthnote.innerHTML='<div class="warn yellow">⚠️ สิทธิ์เดือนมูลค่ารวม '+fmt(mr/0.6)+' บาท<br>ซื้อรวมได้อีก '+fmt(mr/0.6)+' บาท</div>';
-if(mr<=0) monthnote.innerHTML='<div class="warn red">❗ สิทธิ์เดือนครบแล้ว</div>';
+dailynote.innerHTML='';
 }
 
+monthremain.innerText=fmt(govRemainMonth/0.6)+' บาท';
+monthnote.innerHTML='';
+}
 function saveItem(){
 let total=parseFloat(amount.value);
 if(!total||total<=0)return;
@@ -235,8 +252,6 @@ if(p==='daily') dtab.className='tab active'; else mtab.className='tab active';
 amount.addEventListener('input',calc);
 renderAll(); calc();
 </script>
-
-
 
 </body>
 </html>
