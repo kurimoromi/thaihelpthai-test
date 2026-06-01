@@ -81,7 +81,7 @@ input{width:100%;box-sizing:border-box;padding:16px;border:2px solid #d1d5db;bor
 
 <div class="grid">
 <div class="card">
-<div class="title">วันนี้ยังซื้อได้</div>
+<div class="title">สิทธิ์คงเหลือวันนี้</div>
 <div id="dailyremain" class="value">333.33</div>
 <div id="dailynote" class="note"></div>
 </div>
@@ -226,5 +226,60 @@ if(p==='daily') dtab.className='tab active'; else mtab.className='tab active';
 amount.addEventListener('input',calc);
 renderAll(); calc();
 </script>
+
+<script>
+(function(){
+function patchUI(){
+try{
+const inputEl=document.getElementById('amountInput');
+const input=parseFloat(inputEl?.value||0)||0;
+const items=window.items||[];
+
+let todayTotal=0, govUsed=0;
+items.forEach(i=>{
+todayTotal += Number(i.amount||0);
+govUsed += Number(i.gov||0);
+});
+
+const previewTotal=todayTotal+input;
+const dailyRemain=Math.max(0,333.33-previewTotal);
+
+const govPreview=govUsed + Math.min(input*0.6, Math.max(0,200-govUsed));
+const monthGovRemain=Math.max(0,1000-govPreview);
+const monthPurchRemain=monthGovRemain/0.6;
+
+const remain=Math.min(dailyRemain,monthPurchRemain);
+
+const daily=document.getElementById('dailyremain');
+if(daily){ daily.innerHTML=remain.toFixed(2); }
+
+const dnote=document.getElementById('dailynote');
+if(dnote){
+if(previewTotal>333.33){
+dnote.innerHTML='<span class="alerttext">เกินสิทธิ์ '+(previewTotal-333.33).toFixed(2)+' บาท</span>';
+}else{
+dnote.innerHTML='';
+}
+}
+
+const mnote=document.getElementById('monthnote');
+if(mnote){
+mnote.innerHTML='มูลค่ารวม '+monthPurchRemain.toFixed(2)+' บาท';
+}
+
+const uw=document.getElementById('userwarn');
+if(uw){
+const citizenRemain=Math.max(0,133.33-(todayTotal*0.4));
+const extra=Math.max(0,(input*0.4)-citizenRemain);
+uw.innerHTML=extra>0
+? '<span class="alerttext">จ่ายเพิ่มเติม '+extra.toFixed(2)+' บาท</span>'
+: 'จ่ายเพิ่มเติม 0.00 บาท';
+}
+}catch(e){}
+}
+setInterval(patchUI,300);
+})();
+</script>
+
 </body>
 </html>
