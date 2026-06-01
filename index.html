@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Thai Help Thai v20</title>
+<title>Thai Help Thai v22</title>
 <style>
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f3f5f7;margin:0;color:#1f2937}
@@ -22,7 +22,6 @@ input{width:100%;box-sizing:border-box;padding:16px;border:2px solid #d1d5db;bor
 .add{width:170px;border:none;border-radius:16px;background:#2563eb;color:white;font-size:16px;font-weight:700}
 .warn{margin-top:10px;font-size:14px;padding:12px;border-radius:14px}
 .red{background:#fee2e2;color:#991b1b}
-.yellow{background:#fef3c7;color:#92400e}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
 .card{background:white;border-radius:22px;padding:16px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
 .card.blue{background:#eef5ff}
@@ -39,7 +38,10 @@ input{width:100%;box-sizing:border-box;padding:16px;border:2px solid #d1d5db;bor
 .del,.toggle{border:none;border-radius:12px;padding:8px 12px;font-size:14px}
 .del{background:#fee2e2;color:#991b1b}
 .toggle{background:#e8efff;color:#1d4ed8}
-.clear{width:100%;border:none;border-radius:16px;padding:14px;background:#9ca3af;color:white;font-size:15px;margin-top:166px}
+.clear{width:100%;border:none;border-radius:16px;padding:14px;background:#9ca3af;color:white;font-size:15px;margin-top:16px}
+/* ปุ่มสำหรับเปิดดูรายละเอียดเชิงลึก */
+.debug-btn{background:none;border:none;color:#2563eb;font-size:13px;text-decoration:underline;cursor:pointer;margin-top:10px;padding:0;}
+.debug-box{background:#f8fafc;border:1px dashed #cbd5e1;border-radius:12px;padding:12px;margin-top:10px;font-size:13px;color:#475569;display:none;line-height:1.5;}
 </style>
 </head>
 <body>
@@ -70,7 +72,7 @@ input{width:100%;box-sizing:border-box;padding:16px;border:2px solid #d1d5db;bor
 </div>
 
 <div class="card green">
-<div class="title">ประชาชนจ่ายจริง</div>
+<div class="title">...คุณจ่ายจริง...</div>
 <div id="user" class="value">0.00 บาท</div>
 </div>
 </div>
@@ -87,6 +89,10 @@ input{width:100%;box-sizing:border-box;padding:16px;border:2px solid #d1d5db;bor
 <div id="monthremain" class="value">1,666.67 บาท</div>
 </div>
 </div>
+
+<!-- โซนซ่อนข้อมูลตัวเลขแบบละเอียดสำหรับแอดมินคุณกดดู -->
+<button id="toggleDebug" class="debug-btn" onclick="toggleDebugBox()" style="display:none;">[ จิ้มดูรายละเอียดการคำนวณเชิงลึก ]</button>
+<div id="debugBox" class="debug-box"></div>
 
 <div class="section">
 <h2>รายการวันนี้</h2>
@@ -117,6 +123,9 @@ function monthUsed(){return getItems().reduce((a,b)=>a+b.gov,0)}
 function calc(){
 let total=parseFloat(amount.value)||0;
 inputwarn.innerHTML='';
+toggleDebug.style.display='none';
+debugBox.style.display='none';
+
 let todayTotal=getItems().filter(x=>x.day===todayKey()).reduce((a,b)=>a+b.total,0);
 let todayGov=todayUsed();
 let monthGov=monthUsed();
@@ -139,8 +148,23 @@ let userReal=total-govReal;
 gov.innerText=fmt(govReal)+' บาท';
 user.innerText=fmt(userReal)+' บาท';
 
+// คำนวณตัวเลขหลังบ้านเก็บไว้ให้แอดมินดู
+let normalUserPay=total*0.4;
+let userExtraPay=Math.max(0,userReal-normalUserPay);
+let overPurchase=Math.max(0,previewTotal-333.33);
+
 if(previewTotal>333.33){
-inputwarn.innerHTML='<div class="warn red">❗ ยอดรวมวันนี้เกิน 333.33 บาท<br>รัฐช่วยได้สูงสุด 200 บาท / วัน</div>';
+inputwarn.innerHTML='<div class="warn red">❗ ยอดรวมวันนี้ใช้สิทธิ์เกินโควตา 333.33 บาทแล้ว (รัฐช่วยครบวันละ 200 บาท)</div>';
+toggleDebug.style.display='block';
+
+// ประกอบร่างตัวเลขที่ครบๆ ซ่อนไว้ในนี้
+debugBox.innerHTML=`
+<strong>📊 ข้อมูลการคำนวณเชิงลึก (สำหรับคุณ):</strong><br>
+• ยอดซื้อรายการนี้: ${fmt(total)} บาท<br>
+• ยอดซื้อสะสมเกินโควตาวันมา: <span class="alerttext">${fmt(overPurchase)} บาท</span><br>
+• ค่าสินค้าจ่ายเรทปกติ (40%): ${fmt(normalUserPay)} บาท<br>
+• เงินส่วนต่างที่ต้องควักเนื้อเพิ่มจริง: <span class="alerttext">${fmt(userExtraPay)} บาท</span>
+`;
 }
 renderRemain();
 }
@@ -152,7 +176,6 @@ let todayGov=todayUsed();
 let monthGov=monthUsed();
 
 let previewGov=Math.min(input*0.6, Math.max(0,DAILY_CAP-todayGov), Math.max(0,MONTH_CAP-monthGov));
-let govRemainDay=Math.max(0,DAILY_CAP-(todayGov+previewGov));
 let govRemainMonth=Math.max(0,MONTH_CAP-(monthGov+previewGov));
 
 let dailyPurchaseRemain=Math.max(0,333.33-(todayTotal+input));
@@ -160,12 +183,16 @@ let dailyPurchaseRemain=Math.max(0,333.33-(todayTotal+input));
 dailyremain.innerText=fmt(Math.max(0,dailyPurchaseRemain))+' บาท';
 
 if(dailyPurchaseRemain<=0){
-dailynote.innerHTML='<span class="alerttext">(ใช้สิทธิ์วันครบ 200 บาทแล้ว)</span>';
+dailynote.innerHTML='<span class="alerttext">(วันนี้สิทธิ์รัฐช่วยเต็มวงเงิน 200 บาทแล้ว)</span>';
 }else{
 dailynote.innerHTML='';
 }
 
 monthremain.innerText=fmt(govRemainMonth/0.6)+' บาท';
+}
+
+function toggleDebugBox(){
+debugBox.style.display=debugBox.style.display==='none'?'block':'none';
 }
 
 function saveItem(){
