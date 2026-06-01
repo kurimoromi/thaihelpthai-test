@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Thai Help Thai v22</title>
+<title>Thai Help Thai v23</title>
 <style>
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f3f5f7;margin:0;color:#1f2937}
@@ -39,7 +39,6 @@ input{width:100%;box-sizing:border-box;padding:16px;border:2px solid #d1d5db;bor
 .del{background:#fee2e2;color:#991b1b}
 .toggle{background:#e8efff;color:#1d4ed8}
 .clear{width:100%;border:none;border-radius:16px;padding:14px;background:#9ca3af;color:white;font-size:15px;margin-top:16px}
-/* ปุ่มสำหรับเปิดดูรายละเอียดเชิงลึก */
 .debug-btn{background:none;border:none;color:#2563eb;font-size:13px;text-decoration:underline;cursor:pointer;margin-top:10px;padding:0;}
 .debug-box{background:#f8fafc;border:1px dashed #cbd5e1;border-radius:12px;padding:12px;margin-top:10px;font-size:13px;color:#475569;display:none;line-height:1.5;}
 </style>
@@ -72,7 +71,8 @@ input{width:100%;box-sizing:border-box;padding:16px;border:2px solid #d1d5db;bor
 </div>
 
 <div class="card green">
-<div class="title">...คุณจ่ายจริง...</div>
+<!-- แก้ไขจุดที่ 1: เปลี่ยนชื่อหัวข้อกลับเป็น ประชาชนจ่ายจริง -->
+<div class="title">ประชาชนจ่ายจริง</div>
 <div id="user" class="value">0.00 บาท</div>
 </div>
 </div>
@@ -90,7 +90,6 @@ input{width:100%;box-sizing:border-box;padding:16px;border:2px solid #d1d5db;bor
 </div>
 </div>
 
-<!-- โซนซ่อนข้อมูลตัวเลขแบบละเอียดสำหรับแอดมินคุณกดดู -->
 <button id="toggleDebug" class="debug-btn" onclick="toggleDebugBox()" style="display:none;">[ จิ้มดูรายละเอียดการคำนวณเชิงลึก ]</button>
 <div id="debugBox" class="debug-box"></div>
 
@@ -148,22 +147,21 @@ let userReal=total-govReal;
 gov.innerText=fmt(govReal)+' บาท';
 user.innerText=fmt(userReal)+' บาท';
 
-// คำนวณตัวเลขหลังบ้านเก็บไว้ให้แอดมินดู
 let normalUserPay=total*0.4;
-let userExtraPay=Math.max(0,userReal-normalUserPay);
 let overPurchase=Math.max(0,previewTotal-333.33);
+// คำนวณหาโควตาคงเหลือของวันก่อนหน้าที่จะพิมพ์ก้อนนี้ เพื่อนำไปโชว์ในวงเล็บ
+let remainBeforeInput=Math.max(0, 333.33-todayTotal);
 
 if(previewTotal>333.33){
 inputwarn.innerHTML='<div class="warn red">❗ ยอดรวมวันนี้ใช้สิทธิ์เกินโควตา 333.33 บาทแล้ว (รัฐช่วยครบวันละ 200 บาท)</div>';
 toggleDebug.style.display='block';
 
-// ประกอบร่างตัวเลขที่ครบๆ ซ่อนไว้ในนี้
+// แก้ไขจุดที่ 2, 3, 4: ปรับดีไซน์และถ้อยคำในกล่องเชิงลึกใหม่ตามบรีฟ
 debugBox.innerHTML=`
-<strong>📊 ข้อมูลการคำนวณเชิงลึก (สำหรับคุณ):</strong><br>
+<strong>📊 ข้อมูลการคำนวณเชิงลึก :</strong><br>
 • ยอดซื้อรายการนี้: ${fmt(total)} บาท<br>
-• ยอดซื้อสะสมเกินโควตาวันมา: <span class="alerttext">${fmt(overPurchase)} บาท</span><br>
-• ค่าสินค้าจ่ายเรทปกติ (40%): ${fmt(normalUserPay)} บาท<br>
-• เงินส่วนต่างที่ต้องควักเนื้อเพิ่มจริง: <span class="alerttext">${fmt(userExtraPay)} บาท</span>
+• ยอดซื้อสะสมเกินโควตาวันมา (คงเหลือ ${fmt(remainBeforeInput)} บาท) : <span class="alerttext">${fmt(overPurchase)} บาท</span><br>
+• หากจ่ายด้วยเรทปกติ (40%): ${fmt(normalUserPay)} บาท
 `;
 }
 renderRemain();
