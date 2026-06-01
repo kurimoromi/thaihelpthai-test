@@ -81,7 +81,7 @@ input{width:100%;box-sizing:border-box;padding:16px;border:2px solid #d1d5db;bor
 
 <div class="grid">
 <div class="card">
-<div class="title">วันนี้ยังซื้อได้</div>
+<div class="title">สิทธิ์คงเหลือวันนี้</div>
 <div id="dailyremain" class="value">333.33</div>
 <div id="dailynote" class="note"></div>
 </div>
@@ -121,7 +121,9 @@ function monthUsed(){return getItems().reduce((a,b)=>a+b.gov,0)}
 
 function calc(){
 let total=parseFloat(amount.value)||0;
-inputwarn.innerHTML=''; govwarn.innerHTML=''; userwarn.innerHTML='';
+inputwarn.innerHTML=''; govwarn.innerHTML=''; let citizenBase=Math.min(133.33, Math.min(tr,mr)/0.6*0.4);
+let citizenExtra=Math.max(0,userReal-citizenBase);
+userwarn.innerHTML=citizenExtra>0?'<span class="alerttext">จ่ายเพิ่มเติม '+fmt(citizenExtra)+' บาท</span>':'จ่ายเพิ่มเติม 0.00 บาท';
 if(total<=0){gov.innerText='0.00';user.innerText='0.00'; renderRemain(); return;}
 let tr=Math.max(0,DAILY_CAP-todayUsed());
 let mr=Math.max(0,MONTH_CAP-monthUsed());
@@ -147,9 +149,13 @@ if(dayTotal>333.33){
 let normalSelf=Math.min(total,133.33)*0.4;
 let extraSelf=Math.max(0,userReal-133.33);
 if(extraSelf>0){
-userwarn.innerHTML='<span class="alerttext">จ่ายเพิ่มเอง '+fmt(extraSelf)+' บาท</span>';
+let citizenBase=Math.min(133.33, Math.min(tr,mr)/0.6*0.4);
+let citizenExtra=Math.max(0,userReal-citizenBase);
+userwarn.innerHTML=citizenExtra>0?'<span class="alerttext">จ่ายเพิ่มเติม '+fmt(citizenExtra)+' บาท</span>':'จ่ายเพิ่มเติม 0.00 บาท';
 }else{
-userwarn.innerHTML='จ่ายตามสิทธิ์';
+let citizenBase=Math.min(133.33, Math.min(tr,mr)/0.6*0.4);
+let citizenExtra=Math.max(0,userReal-citizenBase);
+userwarn.innerHTML=citizenExtra>0?'<span class="alerttext">จ่ายเพิ่มเติม '+fmt(citizenExtra)+' บาท</span>':'จ่ายเพิ่มเติม 0.00 บาท';
 }
 }
 renderRemain();
@@ -159,11 +165,16 @@ function renderRemain(){
 let tr=Math.max(0,DAILY_CAP-todayUsed());
 let mr=Math.max(0,MONTH_CAP-monthUsed());
 dailyremain.innerText=fmt(tr/0.6)+' บาท';
-dailynote.innerHTML='เหลือสิทธิ์รัฐ '+fmt(tr)+' บาท';
+if(govRemainPreview>0){
+dailynote.innerHTML='เหลือสิทธิ์รัฐ '+fmt(govRemainPreview)+' บาท';
+}else{
+let exceed=Math.max(0, Math.abs(Math.min(tr-govReal,mr-govReal))/0.6);
+dailynote.innerHTML=exceed>0?'<span class="alerttext">เกินสิทธิ์ '+fmt(exceed)+' บาท</span>':'';
+}
 monthremain.innerText=fmt(mr)+' บาท';
 monthnote.innerHTML='มูลค่ารวม '+fmt(mr/0.6)+' บาท';
-if(mr<=200 && mr>0) monthnote.innerHTML='<div class="warn yellow">⚠️ สิทธิ์เดือนมูลค่ารวม '+fmt(mr/0.6)+' บาท<br>ซื้อรวมได้อีก '+fmt(mr/0.6)+' บาท</div>';
-if(mr<=0) monthnote.innerHTML='<div class="warn red">❗ สิทธิ์เดือนครบแล้ว</div>';
+if(mr<=200 && mr>0) monthnote.innerHTML='มูลค่ารวม '+fmt(mr/0.6)+' บาท';
+if(mr<=0) monthnote.innerHTML='มูลค่ารวม '+fmt(mr/0.6)+' บาท';
 }
 
 function saveItem(){
