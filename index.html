@@ -30,7 +30,7 @@ input{width:100%;box-sizing:border-box;padding:16px;border:2px solid #d1d5db;bor
 .kicker{font-size:13px;color:#6b7280;margin-bottom:6px}
 .title{font-size:16px;font-weight:700}
 .value{font-size:28px;font-weight:800;margin-top:4px}
-.note{font-size:13px;color:#4b5563;margin-top:6px;line-height:1.45}
+.note{font-size:13px;color:#4b5563;margin-top:6px;line-height:1.45}.alerttext{color:#b91c1c;font-weight:700}
 .section{margin-top:18px}
 .section h2{font-size:18px;margin:0 0 10px}
 .item{background:white;border-radius:18px;padding:14px;margin-top:10px;border:1px solid #e5e7eb}
@@ -137,7 +137,7 @@ if(dayTotal>333.33){
 inputwarn.innerHTML='<div class="warn red">❗ ยอดรวมวันนี้เกิน 333.33 บาท<br>รัฐช่วยได้สูงสุด 200 บาท / วัน</div>';
 }
 if(gov60>govReal){
-govwarn.innerHTML='ยังใช้สิทธิ์รัฐได้อีก '+fmt(tr)+' บาท';
+govwarn.innerHTML='<span class="alerttext">ยังใช้สิทธิ์รัฐได้อีก '+fmt(tr)+' บาท</span>';
 }
 if(dayTotal>333.33){
 userwarn.innerHTML='จ่ายจริง '+fmt(userReal)+' บาท';
