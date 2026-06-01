@@ -71,7 +71,7 @@ input{width:100%;box-sizing:border-box;padding:16px;border:2px solid #d1d5db;bor
 </div>
 
 <div class="card green">
-<div class="title">ประชาชนจ่าย</div>
+<div class="title">ประชาชนจ่ายจริง</div>
 <div id="user" class="value">0.00</div>
 <div id="userwarn" class="note"></div>
 </div>
@@ -85,7 +85,7 @@ input{width:100%;box-sizing:border-box;padding:16px;border:2px solid #d1d5db;bor
 </div>
 
 <div class="card">
-<div class="title">สิทธิ์คงเหลือเดือนนี้</div>
+<div class="title">สิทธิ์คงเหลือเดือนนี้<br><span style="font-size:13px;color:#6b7280">(รัฐ+ประชาชน)</span></div>
 <div id="monthremain" class="value">1000.00</div>
 <div id="monthnote" class="note"></div>
 </div>
@@ -184,7 +184,7 @@ dailyremain.innerText=fmt(Math.max(0,finalRemain))+' บาท';
 
 if(finalRemain<=0){
 let over=Math.max(0,(todayTotal+input)-333.33);
-dailynote.innerHTML='<span class="alerttext">เกินสิทธิ์วันนี้ '+fmt(over)+' บาท</span>';
+dailynote.innerHTML='<span class="alerttext">เกินโควต้าวันนี้ '+fmt(over)+' บาท</span>';
 }else{
 dailynote.innerHTML='';
 }
