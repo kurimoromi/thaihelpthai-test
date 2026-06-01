@@ -146,10 +146,12 @@ govwarn.innerHTML='รัฐช่วย '+fmt(govReal)+' บาท';
 if(dayTotal>333.33){
 let normalSelf=Math.min(total,133.33)*0.4;
 let extraSelf=Math.max(0,userReal-133.33);
-if(extraSelf>0){
-userwarn.innerHTML='<span class="alerttext">จ่ายเพิ่มเอง '+fmt(extraSelf)+' บาท</span>';
+let citizenCap=Math.min(133.33, Math.min(tr,mr)/0.6*0.4);
+let extraPay=Math.max(0,userReal-citizenCap);
+if(extraPay>0){
+userwarn.innerHTML='<span class="alerttext">จ่ายเพิ่มเติม '+fmt(extraPay)+' บาท</span>';
 }else{
-userwarn.innerHTML='จ่ายตามสิทธิ์';
+userwarn.innerHTML='จ่ายเพิ่มเติม '+fmt(extraPay)+' บาท';
 }
 }
 renderRemain();
@@ -159,7 +161,12 @@ function renderRemain(){
 let tr=Math.max(0,DAILY_CAP-todayUsed());
 let mr=Math.max(0,MONTH_CAP-monthUsed());
 dailyremain.innerText=fmt(tr/0.6)+' บาท';
-dailynote.innerHTML='เหลือสิทธิ์รัฐ '+fmt(tr)+' บาท';
+let exceedAmt=Math.max(0,(gov60-govReal)/0.6);
+if(exceedAmt>0){
+dailynote.innerHTML='<span class="alerttext">เกินสิทธิ์ '+fmt(exceedAmt)+' บาท</span>';
+}else{
+dailynote.innerHTML='';
+}
 monthremain.innerText=fmt(mr)+' บาท';
 monthnote.innerHTML='มูลค่ารวม '+fmt(mr/0.6)+' บาท';
 if(mr<=200 && mr>0) monthnote.innerHTML='<div class="warn yellow">⚠️ สิทธิ์เดือนมูลค่ารวม '+fmt(mr/0.6)+' บาท<br>ซื้อรวมได้อีก '+fmt(mr/0.6)+' บาท</div>';
