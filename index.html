@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Thai Help Thai v27</title>
+<title>Thai Help Thai v26</title>
 <style>
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f3f5f7;margin:0;color:#1f2937}
@@ -41,8 +41,6 @@ input{width:100%;box-sizing:border-box;padding:16px;border:2px solid #d1d5db;bor
 .clear{width:100%;border:none;border-radius:16px;padding:14px;background:#9ca3af;color:white;font-size:15px;margin-top:16px}
 .debug-btn{background:none;border:none;color:#2563eb;font-size:13px;text-decoration:underline;cursor:pointer;margin-top:10px;padding:0;}
 .debug-box{background:#f8fafc;border:1px dashed #cbd5e1;border-radius:12px;padding:12px;margin-top:10px;font-size:13px;color:#475569;display:none;line-height:1.5;}
-.test-btn{background:#e2e8f0;border:1px solid #cbd5e1;padding:4px 8px;border-radius:6px;font-size:11px;cursor:pointer;margin-left:6px;color:#334155;}
-.test-btn:hover{background:#cbd5e1;}
 </style>
 </head>
 <body>
@@ -112,15 +110,13 @@ input{width:100%;box-sizing:border-box;padding:16px;border:2px solid #d1d5db;bor
 
 <script>
 const DAILY_CAP=200, MONTH_CAP=1000;
-let simMonthGovUsed = 0; // ตัวแปรสำหรับใช้จำลองสิทธิ์รายเดือนที่ใช้ไปแล้วเพื่อทดสอบระบบล็อก
-
 function fmt(n){return Number(n).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function getItems(){return JSON.parse(localStorage.getItem('thaihelp_v15')||'[]')}
 function saveItems(a){localStorage.setItem('thaihelp_v15',JSON.stringify(a))}
 function todayKey(){return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'})}
 function nowThai(){return new Date().toLocaleString('th-TH',{timeZone:'Asia/Bangkok',dateStyle:'medium',timeStyle:'short'})}
 function todayUsed(){return getItems().filter(x=>x.day===todayKey()).reduce((a,b)=>a+b.gov,0)}
-function monthUsed(){return getItems().reduce((a,b)=>a+b.gov,0) + simMonthGovUsed;}
+function monthUsed(){return getItems().reduce((a,b)=>a+b.gov,0)}
 
 function calc(){
 let total=parseFloat(amount.value)||0;
@@ -150,31 +146,23 @@ gov.innerText=fmt(govReal)+' บาท';
 user.innerText=fmt(userReal)+' บาท';
 
 let normalUserPay=total*0.4;
-let currentGovAllowed = Math.min(govRemainDay, govRemainMonth);
-let maxPurchaseAllow = currentGovAllowed / 0.6;
-let overPurchase = Math.max(0, total - maxPurchaseAllow);
 
-if(gov60 > govReal || (todayTotal + total) > 333.33){
-inputwarn.innerHTML='<div class="warn red">❗ ยอดรวมวันนี้ใช้สิทธิ์เกินโควตาของระบบแล้ว (รัฐช่วยครบวงเงินแล้ว)</div>';
+// [จุดแก้ไข Logic Error 1]: คำนวณหาโควตายอดซื้อที่รับได้จริงของวัน โดยคำนึงถึงเงื่อนไขรายเดือนด้วย
+let maxPurchaseAllowToday = Math.min(govRemainDay / 0.6, govRemainMonth / 0.6);
+let overPurchase = Math.max(0, total - maxPurchaseAllowToday);
+
+if (gov60 > govReal) {
+inputwarn.innerHTML='<div class="warn red">❗ ยอดรวมใช้สิทธิ์เกินโควตาของระบบแล้ว (รัฐช่วยครบวงเงินแล้ว)</div>';
 toggleDebug.style.display='block';
 
 debugBox.innerHTML=`
 <strong>📊 ข้อมูลการคำนวณเชิงลึก :</strong><br>
 • ยอดซื้อรายการนี้: ${fmt(total)} บาท<br>
-• ยอดซื้อสะสมเกินโควตามา (คงเหลือโควตาช็อปได้ ${fmt(Math.max(0, maxPurchaseAllow))} บาท) : <span class="alerttext">${fmt(overPurchase)} บาท</span><br>
-• หากจ่ายด้วยเรทปกติ (40%): ${fmt(normalUserPay)} บาท<br><br>
-<span style="color:#64748b; font-size:11px;">🛠️ เครื่องมือทดสอบโควตารายเดือน (ไม่กระทบฐานข้อมูลจริง):</span><br>
-<button class="test-btn" onclick="setSimMonth(0)">รีเซ็ตบิลเดือนนี้</button>
-<button class="test-btn" onclick="setSimMonth(950)">จำลองว่าเดือนนี้รัฐช่วยไปแล้ว 950บ. (เหลือสิทธิ์ 50บ.)</button>
-<button class="test-btn" onclick="setSimMonth(1000)">จำลองว่าเดือนนี้สิทธิ์รัฐหมดแล้ว (ช่วยครบ 1,000บ.)</button>
+• ยอดซื้อสะสมเกินโควตาวันมา (คงเหลือ ${fmt(Math.max(0, maxPurchaseAllowToday))} บาท) : <span class="alerttext">${fmt(overPurchase)} บาท</span><br>
+• หากจ่ายด้วยเรทปกติ (40%): ${fmt(normalUserPay)} บาท
 `;
 }
 renderRemain();
-}
-
-function setSimMonth(val) {
-simMonthGovUsed = val;
-calc();
 }
 
 function renderRemain(){
@@ -183,12 +171,13 @@ let todayTotal=getItems().filter(x=>x.day===todayKey()).reduce((a,b)=>a+b.total,
 let todayGov=todayUsed();
 let monthGov=monthUsed();
 
-let govRemainDay=Math.max(0,DAILY_CAP-todayGov);
-let govRemainMonth=Math.max(0,MONTH_CAP-monthGov);
+let previewGov=Math.min(input*0.6, Math.max(0,DAILY_CAP-todayGov), Math.max(0,MONTH_CAP-monthGov));
+let currentMonthGovRemain=Math.max(0,MONTH_CAP-(monthGov+previewGov));
 
-// แก้ไขบั๊กการแสดงผลคงเหลือรายวันให้คงที่ ไม่วูบวาบตามอินพุตจนกว่าจะบันทึกจริง
-let dailyPurchaseRemain=Math.max(0, govRemainDay/0.6);
-dailyremain.innerText=fmt(dailyPurchaseRemain)+' บาท';
+// [จุดแก้ไข Logic Error 2]: คำนวณยอดซื้อคงเหลือรายวันและรายเดือนให้สอดคล้องกับความเป็นจริงของระบบกระเป๋าเงิน
+let dailyPurchaseRemain=Math.max(0,(DAILY_CAP-todayGov-previewGov)/0.6);
+
+dailyremain.innerText=fmt(Math.max(0,dailyPurchaseRemain))+' บาท';
 
 if(dailyPurchaseRemain<=0){
 dailynote.innerHTML='<span class="alerttext">(วันนี้สิทธิ์รัฐช่วยเต็มวงเงิน 200 บาทแล้ว)</span>';
@@ -196,9 +185,7 @@ dailynote.innerHTML='<span class="alerttext">(วันนี้สิทธิ�
 dailynote.innerHTML='';
 }
 
-// คำนวณสิทธิ์คงเหลือรายเดือนรวมสุทธิ
-let finalMonthGovRemain = Math.max(0, MONTH_CAP - monthGov);
-monthremain.innerText=fmt(finalMonthGovRemain/0.6)+' บาท';
+monthremain.innerText=fmt(currentMonthGovRemain/0.6)+' บาท';
 }
 
 function toggleDebugBox(){
@@ -216,7 +203,6 @@ let arr=getItems();
 arr.push({day:todayKey(),time:nowThai(),total,gov,user});
 saveItems(arr);
 amount.value='';
-simMonthGovUsed = 0; // รีเซ็ตค่าจำลองเมื่อกดบันทึกจริง เพื่อความปลอดภัยของข้อมูล
 renderAll(); calc();
 }
 
