@@ -86,7 +86,7 @@ input{width:100%;box-sizing:border-box;padding:16px;border:2px solid #d1d5db;bor
 
 <div class="card">
 <div class="title">สิทธิ์คงเหลือเดือนนี้<br><span style="font-size:13px;color:#6b7280">(รัฐ+ประชาชน)</span></div>
-<div id="monthremain" class="value">1000.00</div>
+<div id="monthremain" class="value">1,666.67</div>
 <div id="monthnote" class="note"></div>
 </div>
 </div>
@@ -157,7 +157,7 @@ let citizenPreview=citizenUsed+userReal;
 let extra=Math.max(0,citizenPreview-citizenBase);
 
 if(extra>0){
-userwarn.innerHTML='<span class="alerttext">จ่ายเพิ่มเติม '+fmt(extra)+' บาท</span>';
+userwarn.innerHTML='<span class="alerttext">ส่วนเกินที่ต้องจ่ายเอง '+fmt(extra)+' บาท</span>';
 }else{
 userwarn.innerHTML='';
 }
@@ -184,7 +184,7 @@ dailyremain.innerText=fmt(Math.max(0,finalRemain))+' บาท';
 
 if(finalRemain<=0){
 let over=Math.max(0,(todayTotal+input)-333.33);
-dailynote.innerHTML='<span class="alerttext">เกินโควต้าวันนี้ '+fmt(over)+' บาท</span>';
+dailynote.innerHTML='<span class="alerttext">ยอดซื้อเกินสิทธิ์ของวัน: '+fmt(over)+' บาท</span>';
 }else{
 dailynote.innerHTML='';
 }
@@ -255,4 +255,3 @@ renderAll(); calc();
 
 </body>
 </html>
-<!-- v18 spec lock applied: monthly total, daily warning, real citizen pay -->
