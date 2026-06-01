@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Thai Help Thai v25</title>
+<title>Thai Help Thai v26</title>
 <style>
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f3f5f7;margin:0;color:#1f2937}
@@ -135,7 +135,6 @@ renderRemain();
 return;
 }
 
-let previewTotal=todayTotal+total;
 let govRemainDay=Math.max(0,DAILY_CAP-todayGov);
 let govRemainMonth=Math.max(0,MONTH_CAP-monthGov);
 
@@ -147,17 +146,19 @@ gov.innerText=fmt(govReal)+' บาท';
 user.innerText=fmt(userReal)+' บาท';
 
 let normalUserPay=total*0.4;
-let remainBeforeInput=Math.max(0, 333.33-todayTotal);
-let overPurchase=Math.max(0, total-remainBeforeInput);
 
-if(previewTotal>333.33){
-inputwarn.innerHTML='<div class="warn red">❗ ยอดรวมวันนี้ใช้สิทธิ์เกินโควตา 333.33 บาทแล้ว (รัฐช่วยครบวันละ 200 บาท)</div>';
+// [จุดแก้ไข Logic Error 1]: คำนวณหาโควตายอดซื้อที่รับได้จริงของวัน โดยคำนึงถึงเงื่อนไขรายเดือนด้วย
+let maxPurchaseAllowToday = Math.min(govRemainDay / 0.6, govRemainMonth / 0.6);
+let overPurchase = Math.max(0, total - maxPurchaseAllowToday);
+
+if (gov60 > govReal) {
+inputwarn.innerHTML='<div class="warn red">❗ ยอดรวมใช้สิทธิ์เกินโควตาของระบบแล้ว (รัฐช่วยครบวงเงินแล้ว)</div>';
 toggleDebug.style.display='block';
 
 debugBox.innerHTML=`
 <strong>📊 ข้อมูลการคำนวณเชิงลึก :</strong><br>
 • ยอดซื้อรายการนี้: ${fmt(total)} บาท<br>
-• ยอดซื้อสะสมเกินโควตาวันมา (คงเหลือ ${fmt(remainBeforeInput)} บาท) : <span class="alerttext">${fmt(overPurchase)} บาท</span><br>
+• ยอดซื้อสะสมเกินโควตาวันมา (คงเหลือ ${fmt(Math.max(0, maxPurchaseAllowToday))} บาท) : <span class="alerttext">${fmt(overPurchase)} บาท</span><br>
 • หากจ่ายด้วยเรทปกติ (40%): ${fmt(normalUserPay)} บาท
 `;
 }
@@ -171,9 +172,10 @@ let todayGov=todayUsed();
 let monthGov=monthUsed();
 
 let previewGov=Math.min(input*0.6, Math.max(0,DAILY_CAP-todayGov), Math.max(0,MONTH_CAP-monthGov));
-let govRemainMonth=Math.max(0,MONTH_CAP-(monthGov+previewGov));
+let currentMonthGovRemain=Math.max(0,MONTH_CAP-(monthGov+previewGov));
 
-let dailyPurchaseRemain=Math.max(0,333.33-(todayTotal+input));
+// [จุดแก้ไข Logic Error 2]: คำนวณยอดซื้อคงเหลือรายวันและรายเดือนให้สอดคล้องกับความเป็นจริงของระบบกระเป๋าเงิน
+let dailyPurchaseRemain=Math.max(0,(DAILY_CAP-todayGov-previewGov)/0.6);
 
 dailyremain.innerText=fmt(Math.max(0,dailyPurchaseRemain))+' บาท';
 
@@ -183,7 +185,7 @@ dailynote.innerHTML='<span class="alerttext">(วันนี้สิทธิ�
 dailynote.innerHTML='';
 }
 
-monthremain.innerText=fmt(govRemainMonth/0.6)+' บาท';
+monthremain.innerText=fmt(currentMonthGovRemain/0.6)+' บาท';
 }
 
 function toggleDebugBox(){
