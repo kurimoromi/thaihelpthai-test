@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Thai Help Thai v24</title>
+<title>Thai Help Thai v25</title>
 <style>
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f3f5f7;margin:0;color:#1f2937}
@@ -147,16 +147,13 @@ gov.innerText=fmt(govReal)+' บาท';
 user.innerText=fmt(userReal)+' บาท';
 
 let normalUserPay=total*0.4;
-// หาว่าโควตายอดซื้อของวันที่เหลือก่อนจะพิมพ์รายการนี้คือเท่าไหร่
 let remainBeforeInput=Math.max(0, 333.33-todayTotal);
-// คำนวณยอดส่วนที่เกินโควตาออกมาจริง ๆ แบบไดนามิกตามจำนวนเงินที่พิมพ์
 let overPurchase=Math.max(0, total-remainBeforeInput);
 
 if(previewTotal>333.33){
 inputwarn.innerHTML='<div class="warn red">❗ ยอดรวมวันนี้ใช้สิทธิ์เกินโควตา 333.33 บาทแล้ว (รัฐช่วยครบวันละ 200 บาท)</div>';
 toggleDebug.style.display='block';
 
-// ปรับสูตรการคำนวณตรงนี้ให้ผูกกับตัวแปร overPurchase และ remainBeforeInput ที่คำนวณสดใหม่ทุกรอบเรียบร้อยค่ะ
 debugBox.innerHTML=`
 <strong>📊 ข้อมูลการคำนวณเชิงลึก :</strong><br>
 • ยอดซื้อรายการนี้: ${fmt(total)} บาท<br>
