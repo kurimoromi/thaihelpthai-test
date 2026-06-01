@@ -81,7 +81,7 @@ input{width:100%;box-sizing:border-box;padding:16px;border:2px solid #d1d5db;bor
 
 <div class="grid">
 <div class="card">
-<div class="title">สิทธิ์คงเหลือวันนี้</div>
+<div class="title">วันนี้ยังซื้อได้</div>
 <div id="dailyremain" class="value">333.33</div>
 <div id="dailynote" class="note"></div>
 </div>
@@ -146,12 +146,10 @@ govwarn.innerHTML='รัฐช่วย '+fmt(govReal)+' บาท';
 if(dayTotal>333.33){
 let normalSelf=Math.min(total,133.33)*0.4;
 let extraSelf=Math.max(0,userReal-133.33);
-let citizenCap=Math.min(133.33, Math.min(tr,mr)/0.6*0.4);
-let extraPay=Math.max(0,userReal-citizenCap);
-if(extraPay>0){
-userwarn.innerHTML='<span class="alerttext">จ่ายเพิ่มเติม '+fmt(extraPay)+' บาท</span>';
+if(extraSelf>0){
+userwarn.innerHTML='<span class="alerttext">จ่ายเพิ่มเอง '+fmt(extraSelf)+' บาท</span>';
 }else{
-userwarn.innerHTML='จ่ายเพิ่มเติม '+fmt(extraPay)+' บาท';
+userwarn.innerHTML='จ่ายตามสิทธิ์';
 }
 }
 renderRemain();
@@ -161,26 +159,11 @@ function renderRemain(){
 let tr=Math.max(0,DAILY_CAP-todayUsed());
 let mr=Math.max(0,MONTH_CAP-monthUsed());
 dailyremain.innerText=fmt(tr/0.6)+' บาท';
-let exceedAmt=Math.max(0,(gov60-govReal)/0.6);
-if(exceedAmt>0){
-if(govRemainPreview<=0 && (govReal>tr || govReal>mr)){
-let exceed=Math.max(govReal-tr, govReal-mr)/0.6;
-dailynote.innerHTML='<span class="alerttext">เกินสิทธิ์ '+fmt(exceed)+' บาท</span>';
-}else{
-dailynote.innerHTML='';
-}
-}else{
-if(govRemainPreview<=0 && (govReal>tr || govReal>mr)){
-let exceed=Math.max(govReal-tr, govReal-mr)/0.6;
-dailynote.innerHTML='<span class="alerttext">เกินสิทธิ์ '+fmt(exceed)+' บาท</span>';
-}else{
-dailynote.innerHTML='';
-}
-}
+dailynote.innerHTML='เหลือสิทธิ์รัฐ '+fmt(tr)+' บาท';
 monthremain.innerText=fmt(mr)+' บาท';
 monthnote.innerHTML='มูลค่ารวม '+fmt(mr/0.6)+' บาท';
-if(mr<=200 && mr>0) monthnote.innerHTML='มูลค่ารวม '+fmt(mr/0.6)+' บาท';
-if(mr<=0) monthnote.innerHTML='มูลค่ารวม '+fmt(mr/0.6)+' บาท';
+if(mr<=200 && mr>0) monthnote.innerHTML='<div class="warn yellow">⚠️ สิทธิ์เดือนมูลค่ารวม '+fmt(mr/0.6)+' บาท<br>ซื้อรวมได้อีก '+fmt(mr/0.6)+' บาท</div>';
+if(mr<=0) monthnote.innerHTML='<div class="warn red">❗ สิทธิ์เดือนครบแล้ว</div>';
 }
 
 function saveItem(){
